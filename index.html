@@ -1,0 +1,99 @@
+
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>瑋澤的預約網站</title>
+  <meta name="description" content="瑋澤的預約網站，提供學生預約老師時段的功能">
+
+  <link rel="stylesheet" href="style.css">
+  <script src="script.js" defer></script>
+</head>
+
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <h1>瑋澤的預約網站</h1>
+      <span class="header-label">校園服務</span>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="intro">
+      <p class="eyebrow">ONLINE BOOKING</p>
+      <h2>預約老師時段</h2>
+      <p>請選擇日期與時段，並填寫學生資料。</p>
+    </section>
+
+    <section class="panel">
+      <h3>第一步：選擇時段</h3>
+
+      <label for="booking-date">預約日期</label>
+      <input type="date" id="booking-date" required>
+
+      <div id="slots" class="slots" aria-live="polite"></div>
+    </section>
+
+    <section class="panel">
+      <h3>第二步：填寫資料</h3>
+
+      <form id="booking-form">
+        <input type="hidden" id="selected-slot">
+
+        <label for="class-name">班級</label>
+        <input
+          type="text"
+          id="class-name"
+          placeholder="例如：205"
+          required
+          maxlength="20"
+        >
+
+        <label for="student-name">姓名</label>
+        <input
+          type="text"
+          id="student-name"
+          placeholder="請輸入姓名"
+          required
+          maxlength="50"
+        >
+
+        <label for="seat-number">座號</label>
+        <input
+          type="number"
+          id="seat-number"
+          min="1"
+          max="100"
+          placeholder="請輸入座號"
+          required
+        >
+
+        <label for="student-email">學生電子郵件</label>
+        <input
+          type="email"
+          id="student-email"
+          placeholder="請輸入電子郵件"
+          required
+          maxlength="254"
+        >
+
+        <button type="submit" id="submit-button">
+          送出預約
+        </button>
+
+        <p id="message" role="status" aria-live="polite"></p>
+      </form>
+    </section>
+
+    <p class="notice">
+      目前為介面測試版，尚未儲存預約資料，也不會寄送電子郵件。
+    </p>
+  </main>
+
+  <footer>
+    <p>校園教師預約系統</p>
+  </footer>
+</body>
+</html>
