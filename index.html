@@ -42,14 +42,18 @@
       <form id="booking-form">
         <input type="hidden" id="selected-slot">
 
-        <label for="class-name">班級</label>
-        <input
-          type="text"
-          id="class-name"
-          placeholder="例如：205"
-          required
-          maxlength="20"
-        >
+      <label for="class-name">班級</label>
+      <input
+        type="text"
+        id="class-name"
+        placeholder="例如：205"
+        required
+        minlength="3"
+        maxlength="3"
+        inputmode="numeric"
+        pattern="[1-3](0[1-9]|1[0-9]|20)"
+        title="請輸入101至120、201至220或301至320的班級代碼"
+      >
 
         <label for="student-name">姓名</label>
         <input
