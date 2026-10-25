@@ -6,12 +6,8 @@ const bookingForm = document.querySelector("#booking-form");
 const message = document.querySelector("#message");
 
 const timeSlots = [
-  "10:00–10:15",
-  "10:15–10:30",
-  "10:30–10:45",
-  "10:45–11:00",
-  "13:00–13:15",
-  "13:15–13:30"
+  "12:30–13:00",
+  "16:10–17:00",
 ];
 
 let selectedSlot = "";
@@ -36,7 +32,14 @@ function renderSlots() {
 
   message.textContent = "";
 
-  timeSlots.forEach((time) => {
+  const selectedDate = new Date(dateInput.value + "T00:00:00");
+  const isTuesday = selectedDate.getDay() === 2;
+
+  const availableSlots = timeSlots.filter(
+   (time) => !(isTuesday && time === "16:10–17:00")
+);
+
+availableSlots.forEach((time) => {
     const button = document.createElement("button");
 
     button.type = "button";
