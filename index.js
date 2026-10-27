@@ -78,6 +78,44 @@ bookingForm.addEventListener("submit", (event) => {
   if (!bookingForm.reportValidity()) {
     return;
   }
+  
+const API_URL =
+  "https://script.google.com/macros/s/AKfycbz7jicWXtx9kIAHqsV0neM0b_2lvqKPhF6ApNv9gDUUvKohN1aBqoEd3iS-7AYWso5J/exec";
+
+// 接收 Apps Script 的測試回應
+window.onAppsScriptPing = function (result) {
+  const message = document.querySelector("#message");
+
+  if (result && result.ok) {
+    console.log(result.message);
+
+    if (message) {
+      message.textContent = "後端連線成功！";
+    }
+  } else if (message) {
+    message.textContent = "後端回應格式不正確。";
+  }
+};
+
+// 發送測試請求
+const apiScript = document.createElement("script");
+
+apiScript.src =
+  API_URL + "?callback=onAppsScriptPing";
+
+apiScript.onerror = function () {
+  const message = document.querySelector("#message");
+
+  if (message) {
+    message.textContent =
+      "後端連線失敗，請檢查部署設定。";
+  }
+
+  console.error("Apps Script 連線失敗");
+};
+
+document.head.appendChild(apiScript);
+
 
   message.textContent =
     "表單測試成功！目前尚未建立真實預約，資料也沒有送到老師的信箱。";
