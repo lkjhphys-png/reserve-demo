@@ -190,3 +190,31 @@ bookingForm.addEventListener("submit", (event) => {
 
 // 網頁載入後讀取試算表
 loadSlots();
+
+async function testPostConnection() {
+  try {
+
+    const response = await fetch(API_URL, {
+      method: "POST",
+      redirect: "follow",
+      headers: {
+        "Content-Type": "text/plain;charset=utf-8"
+      },
+      body: JSON.stringify({
+        action: "ping"
+      })
+    });
+
+    const result = await response.json();
+
+    console.log("POST 測試結果：", result);
+
+  } catch (error) {
+
+    console.error("POST 連線失敗：", error);
+
+  }
+}
+
+// 暫時執行一次測試
+testPostConnection();
