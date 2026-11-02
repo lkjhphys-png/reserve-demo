@@ -218,3 +218,34 @@ async function testPostConnection() {
 
 // 暫時執行一次測試
 testPostConnection();
+
+
+
+async function testPostConnection() {
+  try {
+    const response = await fetch(API_URL, {
+      method: "POST",
+      redirect: "follow",
+      headers: {
+        "Content-Type": "text/plain;charset=utf-8"
+      },
+      body: JSON.stringify({
+        action: "ping"
+      })
+    });
+
+    const result = await response.json();
+
+    if (!response.ok || !result.ok) {
+      throw new Error(result.message || "後端回應失敗");
+    }
+
+    console.log("POST 測試成功：", result);
+
+  } catch (error) {
+    console.error("POST 測試失敗：", error);
+  }
+}
+
+// 暫時測試一次
+testPostConnection();
