@@ -6,6 +6,67 @@ const message = document.querySelector("#message");
 
 const API_URL =
   "https://script.google.com/macros/s/AKfycbz7jicWXtx9kIAHqsV0neM0b_2lvqKPhF6ApNv9gDUUvKohN1aBqoEd3iS-7AYWso5J/exec";
+  // ==============================
+// Google 登入設定
+// ==============================
+
+const GOOGLE_CLIENT_ID =
+  "585973761770-cgaijj4lsu268rrgo170eo9vb93hotc6.apps.googleusercontent.com";
+
+// 暫存 Google 登入憑證
+let googleCredential = null;
+
+// 初始化 Google 登入
+function initializeGoogleLogin() {
+
+  if (!window.google?.accounts?.id) {
+    return false;
+  }
+
+  google.accounts.id.initialize({
+    client_id: GOOGLE_CLIENT_ID,
+
+    callback: function (response) {
+
+      // 保存 Google 回傳的登入憑證
+      googleCredential = response.credential;
+
+      document.querySelector("#login-status").textContent =
+        "已取得 Google 登入憑證，等待後端驗證。";
+
+      console.log("已取得 Google 登入憑證。");
+    }
+  });
+
+  // 顯示 Google 登入按鈕
+  google.accounts.id.renderButton(
+    document.querySelector("#google-login-button"),
+    {
+      type: "standard",
+      theme: "outline",
+      size: "large",
+      text: "signin_with",
+      shape: "rectangular",
+      width: 280
+    }
+  );
+
+  return true;
+}
+
+// 等待 Google 登入程式庫載入
+function waitForGoogleLogin() {
+
+  const initialized = initializeGoogleLogin();
+
+  if (!initialized) {
+    setTimeout(waitForGoogleLogin, 300);
+  }
+
+}
+
+// 啟動 Google 登入
+waitForGoogleLogin();
 
 let allSlots = [];
 let selectedSlot = null;
@@ -166,9 +227,16 @@ function renderSlots() {
 
 dateInput.addEventListener("change", renderSlots);
 
-// 目前只測試前端表單，不會建立真實預約
+// 目前只測試登入與表單，不會建立真實預約
 bookingForm.addEventListener("submit", (event) => {
+
   event.preventDefault();
+
+  // 檢查 Google 登入
+  if (!googleCredential) {
+    message.textContent = "請先使用 Google 帳號登入。";
+    return;
+  }
 
   if (isLoading) {
     message.textContent = "時段仍在載入，請稍候。";
@@ -185,41 +253,14 @@ bookingForm.addEventListener("submit", (event) => {
   }
 
   message.textContent =
-    "表單測試成功！目前尚未建立真實預約，也沒有傳送學生資料或寄送通知。";
+    "前端測試成功！Google 登入憑證尚未經後端驗證，目前不會建立真實預約。";
+
 });
+  message.textContent =
+
 
 // 網頁載入後讀取試算表
 loadSlots();
-
-async function testPostConnection() {
-  try {
-
-    const response = await fetch(API_URL, {
-      method: "POST",
-      redirect: "follow",
-      headers: {
-        "Content-Type": "text/plain;charset=utf-8"
-      },
-      body: JSON.stringify({
-        action: "ping"
-      })
-    });
-
-    const result = await response.json();
-
-    console.log("POST 測試結果：", result);
-
-  } catch (error) {
-
-    console.error("POST 連線失敗：", error);
-
-  }
-}
-
-// 暫時執行一次測試
-testPostConnection();
-
-
 
 async function testPostConnection() {
   try {
