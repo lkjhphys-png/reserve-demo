@@ -15,7 +15,7 @@ const GOOGLE_CLIENT_ID =
 
 // 暫存 Google 登入憑證
 let googleCredential = null;
-let verifiedGoogleEmail = null;
+
 // 初始化 Google 登入
 function initializeGoogleLogin() {
 
@@ -26,55 +26,30 @@ function initializeGoogleLogin() {
   google.accounts.id.initialize({
     client_id: GOOGLE_CLIENT_ID,
 
-   callback: async function (response) {
+    callback: function (response) {
 
-  googleCredential = response.credential;
-  verifiedGoogleEmail = null;
+      // 保存 Google 回傳的登入憑證
+      googleCredential = response.credential;
 
-  const loginStatus = document.querySelector("#login-status");
+      document.querySelector("#login-status").textContent =
+        "已取得 Google 登入憑證，等待後端驗證。";
 
-  loginStatus.textContent = "正在向 Google 驗證登入身分……";
-
-  try {
-
-    const result = await fetch(API_URL, {
-      method: "POST",
-      redirect: "follow",
-      headers: {
-        "Content-Type": "text/plain;charset=utf-8"
-      },
-      body: JSON.stringify({
-        action: "verifyGoogleToken",
-        credential: googleCredential
-      })
-    });
-
-    const data = await result.json();
-
-    if (!result.ok || !data.ok) {
-      throw new Error(data.message || "身分驗證失敗");
+      console.log("已取得 Google 登入憑證。");
     }
+  });
 
-    // 只有後端驗證成功，才記錄可信任的 Email
-    verifiedGoogleEmail = data.email;
-
-    loginStatus.textContent =
-      `登入成功：${verifiedGoogleEmail}`;
-
-    console.log("Google 後端驗證成功");
-
-  } catch (error) {
-
-    googleCredential = null;
-    verifiedGoogleEmail = null;
-
-    loginStatus.textContent =
-      "登入驗證失敗：" + error.message;
-
-    console.error("Google 後端驗證失敗：", error);
-
-  }
-};
+  // 顯示 Google 登入按鈕
+  google.accounts.id.renderButton(
+    document.querySelector("#google-login-button"),
+    {
+      type: "standard",
+      theme: "outline",
+      size: "large",
+      text: "signin_with",
+      shape: "rectangular",
+      width: 280
+    }
+  );
 
   return true;
 }
@@ -257,10 +232,11 @@ bookingForm.addEventListener("submit", (event) => {
 
   event.preventDefault();
 
-  if (!verifiedGoogleEmail) {
-  message.textContent = "請先完成 Google 身分驗證。";
-  return;
-}
+  // 檢查 Google 登入
+  if (!googleCredential) {
+    message.textContent = "請先使用 Google 帳號登入。";
+    return;
+  }
 
   if (isLoading) {
     message.textContent = "時段仍在載入，請稍候。";
