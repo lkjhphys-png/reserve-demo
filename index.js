@@ -57,18 +57,27 @@ function initializeGoogleLogin() {
       throw new Error(data.message || "身分驗證失敗");
     }
 
-    // 只有後端驗證成功，才記錄可信任的 Email
-    verifiedGoogleEmail = data.email;
+   // 只有後端驗證成功，才記錄可信任的 Email
+verifiedGoogleEmail = data.email;
 
-    loginStatus.textContent =
-      `登入成功：${verifiedGoogleEmail}`;
+// 自動填入 Email，並禁止學生修改
+const emailInput = document.querySelector("#student-email");
 
+emailInput.value = verifiedGoogleEmail;
+emailInput.readOnly = true;
+
+loginStatus.textContent =
+  `登入成功：${verifiedGoogleEmail}`;
     console.log("Google 後端驗證成功");
 
   } catch (error) {
 
     googleCredential = null;
     verifiedGoogleEmail = null;
+    const emailInput = document.querySelector("#student-email");
+
+emailInput.value = "";
+emailInput.readOnly = false;
 
     loginStatus.textContent =
       "登入驗證失敗：" + error.message;
