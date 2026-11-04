@@ -274,34 +274,110 @@ function renderSlots() {
 
 dateInput.addEventListener("change", renderSlots);
 
-// 目前只測試登入與表單，不會建立真實預約
-bookingForm.addEventListener("submit", (event) => {
+
+// ==============================
+// 正式建立預約
+// ==============================
+bookingForm.addEventListener("submit", async (event) => {
 
   event.preventDefault();
 
-if (!verifiedGoogleEmail) {
-  message.textContent = "請先完成 Google 身分驗證。";
-  return;
-}
+  // 1. 確認 Google 登入
+  if (!googleCredential || !verifiedGoogleEmail) {
+    message.textContent = "請先完成 Google 身分驗證。";
+    return;
+  }
 
+  // 2. 確認時段載入完成
   if (isLoading) {
     message.textContent = "時段仍在載入，請稍候。";
     return;
   }
 
+  // 3. 確認已選擇時段
   if (!selectedSlot) {
     message.textContent = "請先選擇預約時段。";
     return;
   }
 
+  // 4. 驗證表單
   if (!bookingForm.reportValidity()) {
     return;
   }
 
-  message.textContent =
-  "Google 身分驗證成功！目前仍在測試階段，尚未建立真實預約。";
+  const submitButton = document.querySelector("#submit-button");
+
+  // 防止重複點擊
+  submitButton.disabled = true;
+  message.textContent = "正在建立預約，請稍候……";
+
+  try {
+
+    // 5. 傳送資料至 Apps Script
+    const response = await fetch(API_URL, {
+      method: "POST",
+      redirect: "follow",
+      headers: {
+        "Content-Type": "text/plain;charset=utf-8"
+      },
+      body: JSON.stringify({
+
+        action: "createBooking",
+
+        credential: googleCredential,
+
+        slotId: selectedSlot.id,
+
+        className: document.querySelector("#class-name").value.trim(),
+
+        studentName: document.querySelector("#student-name").value.trim(),
+
+        seatNumber: document.querySelector("#seat-number").value
+
+      })
+    });
+
+    const result = await response.json();
+
+    // 6. 判斷後端是否成功
+    if (!response.ok || !result.ok) {
+      throw new Error(result.message || "預約失敗");
+    }
+
+    // 7. 移除已預約時段
+    const bookedSlotId = selectedSlot.id;
+
+    allSlots = allSlots.filter(
+      slot => slot.id !== bookedSlotId
+    );
+
+    selectedSlot = null;
+    selectedSlotInput.value = "";
+
+    // 更新畫面
+    renderSlots();
+
+    // 顯示成功訊息
+    message.textContent =
+      `預約成功！日期：${result.date}，時間：${result.time}`;
+
+    console.log("預約成功：", result);
+
+  } catch (error) {
+
+    message.textContent =
+      "預約失敗：" + error.message;
+
+    console.error("建立預約失敗：", error);
+
+  } finally {
+
+    submitButton.disabled = false;
+
+  }
 
 });
+
 
 
 // 網頁載入後讀取試算表
