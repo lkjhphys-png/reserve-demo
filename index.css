@@ -184,3 +184,95 @@ footer {
     font-size: 18px;
   }
 }
+
+
+/* 預約成功介面 */
+
+[hidden] {
+  display: none !important;
+}
+
+.success-panel {
+  max-width: 650px;
+  margin: 30px auto;
+  padding: 30px;
+}
+
+.success-heading {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.success-icon {
+  width: 65px;
+  height: 65px;
+  margin: 0 auto 15px;
+  border-radius: 50%;
+  background: #dcfce7;
+  color: #15803d;
+  font-size: 38px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.success-heading h2 {
+  margin-bottom: 8px;
+  color: #166534;
+}
+
+.success-heading p {
+  color: #64748b;
+}
+
+.success-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-bottom: 25px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.success-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  padding: 15px 5px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.success-row span {
+  color: #64748b;
+}
+
+.success-row strong {
+  color: #1e293b;
+  text-align: right;
+}
+
+#continue-booking-button {
+  width: 100%;
+  padding: 13px;
+  border: none;
+  border-radius: 8px;
+  background: #2563eb;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+#continue-booking-button:hover {
+  background: #1d4ed8;
+}
+
+@media (max-width: 480px) {
+  .success-panel {
+    padding: 20px;
+  }
+
+  .success-row {
+    font-size: 14px;
+  }
+}
