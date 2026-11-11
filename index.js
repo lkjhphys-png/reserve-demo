@@ -3,6 +3,15 @@ const slotsContainer = document.querySelector("#slots");
 const selectedSlotInput = document.querySelector("#selected-slot");
 const bookingForm = document.querySelector("#booking-form");
 const message = document.querySelector("#message");
+// 預約成功介面
+const loginSection = document.querySelector("#login-section");
+const bookingSection = document.querySelector("#booking-section");
+const formSection = document.querySelector("#form-section");
+const successSection = document.querySelector("#success-section");
+
+const continueBookingButton = document.querySelector(
+  "#continue-booking-button"
+);
 
 const API_URL =
   "https://script.google.com/macros/s/AKfycbz7jicWXtx9kIAHqsV0neM0b_2lvqKPhF6ApNv9gDUUvKohN1aBqoEd3iS-7AYWso5J/exec";
@@ -275,9 +284,7 @@ function renderSlots() {
 dateInput.addEventListener("change", renderSlots);
 
 
-// ==============================
-// 正式建立預約
-// ==============================
+
 bookingForm.addEventListener("submit", async (event) => {
 
   event.preventDefault();
@@ -307,6 +314,15 @@ bookingForm.addEventListener("submit", async (event) => {
 
   const submitButton = document.querySelector("#submit-button");
 
+  // 暫存本次預約資料，避免等待後端時資料改變
+  const bookingSlot = { ...selectedSlot };
+
+  const bookingInfo = {
+    className: document.querySelector("#class-name").value.trim(),
+    studentName: document.querySelector("#student-name").value.trim(),
+    seatNumber: document.querySelector("#seat-number").value
+  };
+
   // 防止重複點擊
   submitButton.disabled = true;
   message.textContent = "正在建立預約，請稍候……";
@@ -326,13 +342,13 @@ bookingForm.addEventListener("submit", async (event) => {
 
         credential: googleCredential,
 
-        slotId: selectedSlot.id,
+        slotId: bookingSlot.id,
 
-        className: document.querySelector("#class-name").value.trim(),
+        className: bookingInfo.className,
 
-        studentName: document.querySelector("#student-name").value.trim(),
+        studentName: bookingInfo.studentName,
 
-        seatNumber: document.querySelector("#seat-number").value
+        seatNumber: bookingInfo.seatNumber
 
       })
     });
@@ -345,21 +361,36 @@ bookingForm.addEventListener("submit", async (event) => {
     }
 
     // 7. 移除已預約時段
-    const bookedSlotId = selectedSlot.id;
-
     allSlots = allSlots.filter(
-      slot => slot.id !== bookedSlotId
+      slot => slot.id !== bookingSlot.id
     );
 
     selectedSlot = null;
     selectedSlotInput.value = "";
 
-    // 更新畫面
-    renderSlots();
+    // 8. 填入成功畫面的資料
+    document.querySelector("#success-name").textContent =
+      bookingInfo.studentName;
 
-    // 顯示成功訊息
-    message.textContent =
-      `預約成功！日期：${result.date}，時間：${result.time}`;
+    document.querySelector("#success-class").textContent =
+      bookingInfo.className;
+
+    document.querySelector("#success-seat").textContent =
+      bookingInfo.seatNumber;
+
+    document.querySelector("#success-date").textContent =
+      result.date || bookingSlot.date;
+
+    document.querySelector("#success-time").textContent =
+      result.time || bookingSlot.time;
+
+    // 9. 隱藏原本的預約介面
+    loginSection.hidden = true;
+    bookingSection.hidden = true;
+    formSection.hidden = true;
+
+    // 10. 顯示預約成功介面
+    successSection.hidden = false;
 
     console.log("預約成功：", result);
 
@@ -378,6 +409,35 @@ bookingForm.addEventListener("submit", async (event) => {
 
 });
 
+// 繼續預約其他時段
+continueBookingButton.addEventListener("click", () => {
+
+  // 隱藏成功畫面
+  successSection.hidden = true;
+
+  // 恢復預約介面
+  loginSection.hidden = false;
+  bookingSection.hidden = false;
+  formSection.hidden = false;
+
+  // 清空表單
+  bookingForm.reset();
+
+  // 保留已驗證的 Google 帳號
+  const emailInput = document.querySelector("#student-email");
+
+  emailInput.value = verifiedGoogleEmail || "";
+  emailInput.readOnly = Boolean(verifiedGoogleEmail);
+
+  selectedSlot = null;
+  selectedSlotInput.value = "";
+
+  message.textContent = "";
+
+  // 重新從後端讀取可預約時段
+  loadSlots();
+
+});
 
 
 // 網頁載入後讀取試算表
