@@ -32,7 +32,7 @@
 
      <p id="login-status" role="status">尚未登入</p>
     </section>
-    <section class="panel">
+    <section class="panel" id="booking-section">
       <h3>第一步：選擇時段</h3>
 
       <label for="booking-date">預約日期</label>
@@ -41,7 +41,7 @@
       <div id="slots" class="slots" aria-live="polite"></div>
     </section>
 
-    <section class="panel">
+    <section class="panel" id="form-section">
       <h3>第二步：填寫資料</h3>
 
       <form id="booking-form">
@@ -95,8 +95,52 @@
       </form>
     </section>
 
+  <!-- 預約成功畫面 -->
+<section class="panel success-panel" id="success-section" hidden>
+
+  <div class="success-heading">
+    <div class="success-icon">✓</div>
+    <h2>預約成功！</h2>
+    <p>您的預約已成功建立，請確認以下資料。</p>
+  </div>
+
+  <div class="success-details">
+
+    <div class="success-row">
+      <span>學生姓名</span>
+      <strong id="success-name"></strong>
+    </div>
+
+    <div class="success-row">
+      <span>班級</span>
+      <strong id="success-class"></strong>
+    </div>
+
+    <div class="success-row">
+      <span>座號</span>
+      <strong id="success-seat"></strong>
+    </div>
+
+    <div class="success-row">
+      <span>預約日期</span>
+      <strong id="success-date"></strong>
+    </div>
+
+    <div class="success-row">
+      <span>預約時間</span>
+      <strong id="success-time"></strong>
+    </div>
+
+  </div>
+
+  <button type="button" id="continue-booking-button">
+    繼續預約其他時段
+  </button>
+
+</section>
+    
     <p class="notice">
-      目前為介面測試版，尚未儲存預約資料，也不會寄送電子郵件。
+      預約資料會儲存於系統，教師電子郵件通知功能尚未啟用。
     </p>
   </main>
 
