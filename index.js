@@ -24,6 +24,15 @@ const refreshBookingsButton = document.querySelector("#refresh-bookings-button")
 const backToBookingButton = document.querySelector("#back-to-booking-button");
 
 const introSection = document.querySelector(".intro");
+// 取消預約介面
+const successCancelButton = document.querySelector("#success-cancel-button");
+const successCancelMessage = document.querySelector("#success-cancel-message");
+
+// 記住剛建立的預約編號
+let latestBookingId = null;
+
+// 防止重複發送取消請求
+let cancelRequestInProgress = false;
 
 const API_URL =
   "https://script.google.com/macros/s/AKfycbz7jicWXtx9kIAHqsV0neM0b_2lvqKPhF6ApNv9gDUUvKohN1aBqoEd3iS-7AYWso5J/exec";
@@ -375,6 +384,13 @@ bookingForm.addEventListener("submit", async (event) => {
     if (!response.ok || !result.ok) {
       throw new Error(result.message || "預約失敗");
     }
+    // 記住這次成功建立的預約
+latestBookingId = String(result.bookingId || "").trim();
+
+// 只有取得預約編號才能直接取消
+successCancelButton.hidden = !latestBookingId;
+
+successCancelMessage.textContent = "";
 
     // 7. 移除已預約時段
     allSlots = allSlots.filter(
@@ -427,6 +443,10 @@ bookingForm.addEventListener("submit", async (event) => {
 
 // 繼續預約其他時段
 continueBookingButton.addEventListener("click", () => {
+  // 清除上一筆預約的取消入口
+latestBookingId = null;
+successCancelButton.hidden = true;
+successCancelMessage.textContent = "";
 
   // 隱藏成功畫面
   successSection.hidden = true;
@@ -540,7 +560,29 @@ function createBookingCard(booking) {
     createBookingDetail("班級", booking.className),
     createBookingDetail("座號", booking.seatNumber)
   );
+  // 只有有效預約才能顯示取消按鈕
+  if (booking.status === "已預約" && booking.bookingId) {
 
+    const cancelButton = document.createElement("button");
+
+    cancelButton.type = "button";
+    cancelButton.className = "cancel-booking-button";
+    cancelButton.textContent = "取消預約";
+
+    const feedback = document.createElement("p");
+    feedback.className = "cancel-feedback";
+    feedback.setAttribute("role", "status");
+
+    cancelButton.addEventListener("click", () => {
+      cancelBookingFromUI(
+        booking.bookingId,
+        cancelButton,
+        feedback
+      );
+    });
+
+    card.append(cancelButton, feedback);
+  }
   return card;
 }
 
@@ -682,5 +724,136 @@ backToBookingButton.addEventListener("click", () => {
     top: 0,
     behavior: "smooth"
   });
+
+});
+
+
+// ==============================
+// 階段 3-2：前端取消預約
+// ==============================
+
+async function cancelBookingFromUI(
+  bookingId,
+  button,
+  feedback
+) {
+
+  // 防止重複操作
+  if (cancelRequestInProgress) {
+    return;
+  }
+
+  // 確認登入狀態
+  if (!googleCredential || !verifiedGoogleEmail) {
+    feedback.textContent = "請先完成 Google 登入。";
+    return;
+  }
+
+  const id = String(bookingId || "").trim();
+
+  if (!id) {
+    feedback.textContent = "找不到預約編號，請重新整理後再試。";
+    return;
+  }
+
+  // 取消前再次確認
+  const confirmed = window.confirm(
+    "確定要取消這筆預約嗎？\n\n" +
+    "取消後會保留預約紀錄，並重新開放原時段。\n" +
+    "取消期限為預約開始至少 20 分鐘前。"
+  );
+
+  if (!confirmed) {
+    return;
+  }
+
+  cancelRequestInProgress = true;
+
+  const originalText = button.textContent;
+
+  button.disabled = true;
+  button.textContent = "正在取消……";
+  feedback.textContent = "正在向系統送出取消請求……";
+
+  // 避免處理中切換頁面
+  continueBookingButton.disabled = true;
+  successMyBookingsButton.disabled = true;
+  backToBookingButton.disabled = true;
+  refreshBookingsButton.disabled = true;
+
+  try {
+
+    const response = await fetch(API_URL, {
+      method: "POST",
+      redirect: "follow",
+      headers: {
+        "Content-Type": "text/plain;charset=utf-8"
+      },
+      body: JSON.stringify({
+        action: "cancelBooking",
+        credential: googleCredential,
+        bookingId: id
+      })
+    });
+
+    const result = await response.json();
+
+    // 後端決定是否允許取消
+    if (!response.ok || !result.ok) {
+      throw new Error(result.message || "取消預約失敗");
+    }
+
+    console.log("取消預約成功：", {
+      status: result.status,
+      alreadyCancelled: result.alreadyCancelled === true
+    });
+
+    // 若取消的是剛建立的那筆預約
+    if (latestBookingId === id) {
+      latestBookingId = null;
+      successCancelButton.hidden = true;
+    }
+
+    // 取消成功後重新查詢，顯示最新狀態
+    await showMyBookings();
+
+    if (
+      !myBookingsSection.hidden &&
+      !myBookingsStatus.textContent.startsWith("讀取失敗")
+    ) {
+      myBookingsStatus.textContent =
+        "取消成功，預約紀錄已更新。";
+    }
+
+  } catch (error) {
+
+    feedback.textContent = "取消失敗：" + error.message;
+
+    console.error("取消預約失敗：", error);
+
+  } finally {
+
+    cancelRequestInProgress = false;
+
+    button.disabled = false;
+    button.textContent = originalText;
+
+    continueBookingButton.disabled = false;
+    successMyBookingsButton.disabled = false;
+    backToBookingButton.disabled = false;
+    refreshBookingsButton.disabled = false;
+
+  }
+}
+
+
+// 在預約成功頁面取消剛完成的預約
+successCancelButton.addEventListener("click", () => {
+
+  cancelBookingFromUI(
+    latestBookingId,
+    successCancelButton,
+    successCancelMessage
+  );
 
 });
