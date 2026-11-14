@@ -276,3 +276,120 @@ footer {
     font-size: 14px;
   }
 }
+
+
+/* ==========================
+   我的預約介面
+========================== */
+
+.my-bookings-action {
+  padding: 12px 18px;
+  margin-top: 12px;
+  border: 1px solid #2563eb;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #2563eb;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.my-bookings-action:hover {
+  background: #eff6ff;
+}
+
+.my-bookings-action:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+#success-my-bookings-button {
+  display: block;
+  width: 100%;
+}
+
+.my-bookings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.my-booking-card {
+  padding: 20px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #ffffff;
+}
+
+.my-booking-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.my-booking-header h3 {
+  margin: 0;
+  font-size: 18px;
+  color: #0f172a;
+}
+
+.my-booking-status {
+  display: inline-block;
+  padding: 5px 10px;
+  border-radius: 20px;
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.my-booking-status.is-active {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.my-booking-detail {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.my-booking-detail:last-child {
+  border-bottom: none;
+}
+
+.my-booking-detail span {
+  color: #64748b;
+}
+
+.my-booking-detail strong {
+  color: #1e293b;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.my-bookings-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+@media (max-width: 480px) {
+  .my-booking-card {
+    padding: 15px;
+  }
+
+  .my-bookings-toolbar {
+    flex-direction: column;
+  }
+
+  .my-bookings-toolbar button {
+    width: 100%;
+  }
+}
