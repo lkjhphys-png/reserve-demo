@@ -31,6 +31,14 @@
       <div id="google-login-button"></div>
 
      <p id="login-status" role="status">尚未登入</p>
+      <button
+  type="button"
+  id="my-bookings-button"
+  class="my-bookings-action"
+  hidden
+>
+  查看我的預約
+</button>
     </section>
     <section class="panel" id="booking-section">
       <h3>第一步：選擇時段</h3>
@@ -135,10 +143,62 @@
 
   <button type="button" id="continue-booking-button">
     繼續預約其他時段
+    <button
+  type="button"
+  id="success-my-bookings-button"
+  class="my-bookings-action"
+>
+  查看我的預約
+</button>
   </button>
 
 </section>
-    
+    <!-- 我的預約頁面 -->
+<section
+  class="panel"
+  id="my-bookings-section"
+  hidden
+>
+
+  <h2>我的預約</h2>
+
+  <p>
+    以下是目前 Google 帳號的預約紀錄。
+  </p>
+
+  <p
+    id="my-bookings-status"
+    role="status"
+    aria-live="polite"
+  ></p>
+
+  <!-- 預約紀錄會由 JavaScript 自動產生 -->
+  <div
+    id="my-bookings-list"
+    class="my-bookings-list"
+  ></div>
+
+  <div class="my-bookings-toolbar">
+
+    <button
+      type="button"
+      id="refresh-bookings-button"
+      class="my-bookings-action"
+    >
+      重新整理紀錄
+    </button>
+
+    <button
+      type="button"
+      id="back-to-booking-button"
+      class="my-bookings-action"
+    >
+      返回預約頁面
+    </button>
+
+  </div>
+
+</section>
     <p class="notice">
       預約資料會儲存於系統，教師電子郵件通知功能尚未啟用。
     </p>
