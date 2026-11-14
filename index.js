@@ -13,6 +13,18 @@ const continueBookingButton = document.querySelector(
   "#continue-booking-button"
 );
 
+// 我的預約介面
+const myBookingsButton = document.querySelector("#my-bookings-button");
+const successMyBookingsButton = document.querySelector("#success-my-bookings-button");
+const myBookingsSection = document.querySelector("#my-bookings-section");
+const myBookingsList = document.querySelector("#my-bookings-list");
+const myBookingsStatus = document.querySelector("#my-bookings-status");
+
+const refreshBookingsButton = document.querySelector("#refresh-bookings-button");
+const backToBookingButton = document.querySelector("#back-to-booking-button");
+
+const introSection = document.querySelector(".intro");
+
 const API_URL =
   "https://script.google.com/macros/s/AKfycbz7jicWXtx9kIAHqsV0neM0b_2lvqKPhF6ApNv9gDUUvKohN1aBqoEd3iS-7AYWso5J/exec";
   // ==============================
@@ -41,7 +53,8 @@ function initializeGoogleLogin() {
 
   googleCredential = response.credential;
   verifiedGoogleEmail = null;
-
+  // 驗證完成前，不開放查詢
+  myBookingsButton.hidden = true;
   const loginStatus = document.querySelector("#login-status");
 
   loginStatus.textContent = "正在向 Google 驗證登入身分……";
@@ -68,6 +81,9 @@ function initializeGoogleLogin() {
 
    // 只有後端驗證成功，才記錄可信任的 Email
 verifiedGoogleEmail = data.email;
+
+    // 後端驗證成功後，開放我的預約入口
+myBookingsButton.hidden = false;
 
 // 自動填入 Email，並禁止學生修改
 const emailInput = document.querySelector("#student-email");
@@ -471,3 +487,200 @@ async function testPostConnection() {
 
 // 暫時測試一次
 testPostConnection();
+
+
+// ==============================
+// 階段 2-2：我的預約
+// ==============================
+
+// 建立預約資料列
+function createBookingDetail(label, value) {
+
+  const row = document.createElement("div");
+  row.className = "my-booking-detail";
+
+  const labelElement = document.createElement("span");
+  labelElement.textContent = label;
+
+  const valueElement = document.createElement("strong");
+  valueElement.textContent = String(value ?? "—");
+
+  row.append(labelElement, valueElement);
+
+  return row;
+}
+
+
+// 顯示單筆預約卡片
+function createBookingCard(booking) {
+
+  const card = document.createElement("article");
+  card.className = "my-booking-card";
+
+  const header = document.createElement("div");
+  header.className = "my-booking-header";
+
+  const dateTitle = document.createElement("h3");
+  dateTitle.textContent = booking.date || "日期未提供";
+
+  const status = document.createElement("span");
+  status.className = "my-booking-status";
+  status.textContent = booking.status || "未註明";
+
+  if (booking.status === "已預約") {
+    status.classList.add("is-active");
+  }
+
+  header.append(dateTitle, status);
+
+  card.append(
+    header,
+    createBookingDetail("預約時間", booking.time),
+    createBookingDetail("學生姓名", booking.studentName),
+    createBookingDetail("班級", booking.className),
+    createBookingDetail("座號", booking.seatNumber)
+  );
+
+  return card;
+}
+
+
+// 向後端查詢目前登入者的所有預約
+async function showMyBookings() {
+
+  if (!googleCredential || !verifiedGoogleEmail) {
+    document.querySelector("#login-status").textContent =
+      "請先完成 Google 身分驗證。";
+    return;
+  }
+
+  // 暫存此次查詢的登入身分
+  const requestedCredential = googleCredential;
+  const requestedEmail = verifiedGoogleEmail;
+
+  // 隱藏其他頁面
+  introSection.hidden = true;
+  loginSection.hidden = true;
+  bookingSection.hidden = true;
+  formSection.hidden = true;
+  successSection.hidden = true;
+
+  // 顯示我的預約頁面
+  myBookingsSection.hidden = false;
+
+  myBookingsList.replaceChildren();
+  myBookingsStatus.textContent = "正在載入預約紀錄……";
+
+  refreshBookingsButton.disabled = true;
+
+  try {
+
+    const response = await fetch(API_URL, {
+      method: "POST",
+      redirect: "follow",
+      headers: {
+        "Content-Type": "text/plain;charset=utf-8"
+      },
+      body: JSON.stringify({
+        action: "getMyBookings",
+        credential: requestedCredential
+      })
+    });
+
+    const result = await response.json();
+
+    // 如果登入身分已經改變，不顯示舊帳號的資料
+    if (
+      requestedCredential !== googleCredential ||
+      requestedEmail !== verifiedGoogleEmail
+    ) {
+      return;
+    }
+
+    if (!response.ok || !result.ok) {
+      throw new Error(result.message || "查詢失敗");
+    }
+
+    if (!Array.isArray(result.bookings)) {
+      throw new Error("後端回傳的預約資料格式不正確");
+    }
+
+    const bookings = result.bookings;
+
+    // 沒有任何預約
+    if (bookings.length === 0) {
+      myBookingsStatus.textContent = "目前沒有預約紀錄。";
+      return;
+    }
+
+    myBookingsStatus.textContent =
+      `共 ${bookings.length} 筆預約紀錄`;
+
+    // 產生每筆預約卡片
+    bookings.forEach((booking) => {
+      const card = createBookingCard(booking);
+      myBookingsList.appendChild(card);
+    });
+
+    console.log("我的預約載入成功，共", bookings.length, "筆");
+
+  } catch (error) {
+
+    if (
+      requestedCredential !== googleCredential ||
+      requestedEmail !== verifiedGoogleEmail
+    ) {
+      return;
+    }
+
+    myBookingsStatus.textContent =
+      "讀取失敗：" + error.message +
+      "。如果登入憑證已過期，請返回預約頁面重新登入。";
+
+    console.error("查詢我的預約失敗：", error);
+
+  } finally {
+
+    refreshBookingsButton.disabled = false;
+
+  }
+
+}
+
+
+// 登入後的「查看我的預約」
+myBookingsButton.addEventListener("click", showMyBookings);
+
+
+// 成功頁面的「查看我的預約」
+successMyBookingsButton.addEventListener("click", showMyBookings);
+
+
+// 重新整理預約紀錄
+refreshBookingsButton.addEventListener("click", showMyBookings);
+
+
+// 返回預約頁面
+backToBookingButton.addEventListener("click", () => {
+
+  myBookingsSection.hidden = true;
+
+  introSection.hidden = false;
+  loginSection.hidden = false;
+  bookingSection.hidden = false;
+  formSection.hidden = false;
+  successSection.hidden = true;
+
+  // 清空舊的查詢畫面
+  myBookingsList.replaceChildren();
+  myBookingsStatus.textContent = "";
+
+  // 重新取得最新時段
+  loadSlots();
+
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
+
+});
